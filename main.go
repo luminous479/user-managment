@@ -19,6 +19,7 @@ type UserRepository interface{
 	CreateUser(name string, email string)
 	ListUsers()
 	GetUserByID(id int) *User
+	UpdateUser(id int, name string, email string)
 }
 
 type UserService struct{
@@ -47,7 +48,15 @@ func (ser *UserService) GetUserByID(id int) *User {
 	}
 	return nil 
 }
-
+func (ser *UserService) UpdateUser(id int, name string, email string) {
+	for i := range ser.users {
+		if ser.users[i].ID == id {
+			ser.users[i].Name = name
+			ser.users[i].Email = email
+			return
+		}
+	}
+}
  
 func main(){
 
@@ -56,7 +65,7 @@ func main(){
 	repo.CreateUser("Elara","elara@gmail.com")
 	repo.CreateUser("Ada","ada@gmail.com")
 	repo.ListUsers()
-
+    repo.UpdateUser(1,"Elara Updated","elara.updated@gmail.com")
 	if repo.GetUserByID(2) == nil {
 		fmt.Println("Not Found")
 	}else{
