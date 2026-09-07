@@ -1,40 +1,49 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
-
-type User struct{
-
-	ID int
-	Name string
+type User struct {
+	ID    int
+	Name  string
 	Email string
 }
 
 func (u User) Display() {
 	fmt.Printf("User #%d: %s <%s>\n", u.ID, u.Name, u.Email)
-};
+}
 
-type UserRepository interface{
-
-	CreateUser(name string, email string)
+type UserRepository interface {
+	CreateUser(name string, email string) (*User, error)
 	ListUsers()
-	GetUserByID(id int) *User
-	UpdateUser(id int, name string, email string)
-	DeleteUser(id int)
-
+	GetUserByID(id int) (*User, error)
+	UpdateUser(id int, name string, email string) error
+	DeleteUser(id int) error
 }
 
-type UserService struct{
-	users []User
+type UserService struct {
+	users  []User
+	nextId int
 }
 
-func (ser *UserService)  CreateUser(name string, email string)  {
+func (ser *UserService) CreateUser(name string, email string) (*User, error) {
+	if name == "" {
+		return nil, fmt.Errorf("Name cannot be empty")
+	}
+
+	if email == "" {
+		return nil, fmt.Errorf("Email cannot be empty")
+	}
+	ser.nextId++
 	newUser := User{
-		ID: len(ser.users) +1,
-		Name: name,
+		ID:    ser.nextId,
+		Name:  name,
 		Email: email,
 	}
-	ser.users = append(ser.users, newUser )
+
+	ser.users = append(ser.users, newUser)
+	return &ser.users[len(ser.users)-1], nil
 }
 
 func (ser *UserService) ListUsers() {
@@ -42,47 +51,69 @@ func (ser *UserService) ListUsers() {
 		user.Display()
 	}
 }
-func (ser *UserService) GetUserByID(id int) *User {
+func (ser *UserService) GetUserByID(id int) (*User, error) {
 	for i := range ser.users {
 		if ser.users[i].ID == id {
-			return &ser.users[i]
+			return &ser.users[i], nil
 		}
 	}
-	return nil 
+	return nil, fmt.Errorf("User with ID %d not found", id)
 }
-func (ser *UserService) UpdateUser(id int, name string, email string) {
+func (ser *UserService) UpdateUser(id int, name string, email string) error {
 	for i := range ser.users {
 		if ser.users[i].ID == id {
 			ser.users[i].Name = name
 			ser.users[i].Email = email
-			return
+			return nil
 		}
 	}
+	return fmt.Errorf("User with ID %d not found", id)
 }
-func (ser *UserService) DeleteUser(id int) {
+func (ser *UserService) DeleteUser(id int) error {
 	for i := range ser.users {
 		if ser.users[i].ID == id {
 			ser.users = append(ser.users[:i], ser.users[i+1:]...)
-			return
+			return nil
 		}
 	}
+	return fmt.Errorf("User with ID %d not found", id)
 }
- 
-func main(){
 
-	var repo UserRepository= &UserService{}
+func main() {
 
-	repo.CreateUser("Elara","elara@gmail.com")
-	repo.CreateUser("Ada","ada@gmail.com")
-	repo.CreateUser("Luna","luna@gmail.com")
+	var repo UserRepository = &UserService{}
+
+	_, err := repo.CreateUser("Elara", "elara@gmail.com")
+	if err != nil {
+		fmt.Println(err)
+	}
+	_, err = repo.CreateUser("Ada", "ada@gmail.com")
+	if err != nil {
+		fmt.Println(err)
+	}
+	_, err = repo.CreateUser("Luna", "luna@gmail.com")
+	if err != nil {
+		fmt.Println(err)
+	}
 	repo.ListUsers()
-    repo.UpdateUser(1,"Elara Updated","elara.updated@gmail.com")
-	if repo.GetUserByID(2) == nil {
-		fmt.Println("Not Found")
-	}else{
-		fmt.Println("Found")
+	err = repo.UpdateUser(1, "Elara Updated", "elara.updated@gmail.com")
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	getUser, err := repo.GetUserByID(2)
+
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println("Found:")
+		getUser.Display()
 	}
 
-    repo.DeleteUser(2)
+	err = repo.DeleteUser(2)
+
+	if err != nil {
+		fmt.Println(err)
+	}
 
 }
