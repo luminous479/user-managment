@@ -14,6 +14,12 @@ func (u User) Display() {
 	fmt.Printf("User #%d: %s <%s>\n", u.ID, u.Name, u.Email)
 };
 
+type UserRepository interface{
+
+	CreateUser(name string, email string)
+	ListUsers()
+	GetUserByID(id int) *User
+}
 
 type UserService struct{
 	users []User
@@ -34,23 +40,24 @@ func (ser *UserService) ListUsers() {
 	}
 }
 func (ser *UserService) GetUserByID(id int) *User {
-	for i, user := range ser.users {
+	for i := range ser.users {
 		if ser.users[i].ID == id {
-			return &user
+			return &ser.users[i]
 		}
 	}
-	return nil
+	return nil 
 }
+
  
 func main(){
-  
-	service := UserService{}
 
-	service.CreateUser("Elara","elara@gmail.com")
-	service.CreateUser("Ada","ada@gmail.com")
-	service.ListUsers()
+	var repo UserRepository= &UserService{}
 
-	if service.GetUserByID(2) == nil {
+	repo.CreateUser("Elara","elara@gmail.com")
+	repo.CreateUser("Ada","ada@gmail.com")
+	repo.ListUsers()
+
+	if repo.GetUserByID(2) == nil {
 		fmt.Println("Not Found")
 	}else{
 		fmt.Println("Found")
