@@ -20,6 +20,8 @@ type UserRepository interface{
 	ListUsers()
 	GetUserByID(id int) *User
 	UpdateUser(id int, name string, email string)
+	DeleteUser(id int)
+
 }
 
 type UserService struct{
@@ -57,6 +59,14 @@ func (ser *UserService) UpdateUser(id int, name string, email string) {
 		}
 	}
 }
+func (ser *UserService) DeleteUser(id int) {
+	for i := range ser.users {
+		if ser.users[i].ID == id {
+			ser.users = append(ser.users[:i], ser.users[i+1:]...)
+			return
+		}
+	}
+}
  
 func main(){
 
@@ -64,6 +74,7 @@ func main(){
 
 	repo.CreateUser("Elara","elara@gmail.com")
 	repo.CreateUser("Ada","ada@gmail.com")
+	repo.CreateUser("Luna","luna@gmail.com")
 	repo.ListUsers()
     repo.UpdateUser(1,"Elara Updated","elara.updated@gmail.com")
 	if repo.GetUserByID(2) == nil {
@@ -71,4 +82,7 @@ func main(){
 	}else{
 		fmt.Println("Found")
 	}
+
+    repo.DeleteUser(2)
+
 }
