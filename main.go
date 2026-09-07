@@ -2,86 +2,13 @@ package main
 
 import (
 	"fmt"
+	service "github.com/luminous479/user-managment/internal/service"
+	repositiory "github.com/luminous479/user-managment/internal/repo"
 )
-
-type User struct {
-	ID    int
-	Name  string
-	Email string
-}
-
-func (u User) Display() {
-	fmt.Printf("User #%d: %s <%s>\n", u.ID, u.Name, u.Email)
-}
-
-type UserRepository interface {
-	CreateUser(name string, email string) (*User, error)
-	ListUsers()
-	GetUserByID(id int) (*User, error)
-	UpdateUser(id int, name string, email string) error
-	DeleteUser(id int) error
-}
-
-type UserService struct {
-	users  []User
-	nextId int
-}
-
-func (ser *UserService) CreateUser(name string, email string) (*User, error) {
-	if name == "" {
-		return nil, fmt.Errorf("Name cannot be empty")
-	}
-
-	if email == "" {
-		return nil, fmt.Errorf("Email cannot be empty")
-	}
-	ser.nextId++
-	newUser := User{
-		ID:    ser.nextId,
-		Name:  name,
-		Email: email,
-	}
-
-	ser.users = append(ser.users, newUser)
-	return &ser.users[len(ser.users)-1], nil
-}
-
-func (ser *UserService) ListUsers() {
-	for _, user := range ser.users {
-		user.Display()
-	}
-}
-func (ser *UserService) GetUserByID(id int) (*User, error) {
-	for i := range ser.users {
-		if ser.users[i].ID == id {
-			return &ser.users[i], nil
-		}
-	}
-	return nil, fmt.Errorf("User with ID %d not found", id)
-}
-func (ser *UserService) UpdateUser(id int, name string, email string) error {
-	for i := range ser.users {
-		if ser.users[i].ID == id {
-			ser.users[i].Name = name
-			ser.users[i].Email = email
-			return nil
-		}
-	}
-	return fmt.Errorf("User with ID %d not found", id)
-}
-func (ser *UserService) DeleteUser(id int) error {
-	for i := range ser.users {
-		if ser.users[i].ID == id {
-			ser.users = append(ser.users[:i], ser.users[i+1:]...)
-			return nil
-		}
-	}
-	return fmt.Errorf("User with ID %d not found", id)
-}
 
 func main() {
 
-	var repo UserRepository = &UserService{}
+	var repo repositiory.UserRepository = &service.UserService{}
 
 	_, err := repo.CreateUser("Elara", "elara@gmail.com")
 	if err != nil {
